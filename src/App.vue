@@ -88,6 +88,8 @@ const middleEWidth = computed(() => {
 #logo {
   border: 1px dashed black;
   background-color: black;
+  max-width: 95vw;
+  height: auto;
 }
 #logo line {
   stroke: white;
@@ -99,16 +101,14 @@ const middleEWidth = computed(() => {
 #controlRow {
   display: flex;
   flex-direction: row;
-  place-items: center;
+  justify-content: space-evenly;
   margin: 5px;
+  width: 100%;
 }
 .control {
   display: flex;
   flex-direction: column;
   place-items: center;
   padding: 5px;
-}
-.control:not(:last-child) {
-  border-right: 1px solid black;
 }
 </style>
