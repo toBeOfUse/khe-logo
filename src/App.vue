@@ -97,7 +97,7 @@ const colors = reactive(
   <div id="controlRow">
     <div class="control">
       <p>Width</p>
-      <input type="range" v-model.number="width" min="1000" max="1300" />
+      <input type="range" v-model.number="width" min="900" max="1300" />
       <p>{{ width }}</p>
     </div>
     <div class="control">
