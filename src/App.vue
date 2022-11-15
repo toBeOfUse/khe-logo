@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
-import { Point, Line } from "@mathigon/euclid";
+import { Point, Line, intersections } from "@mathigon/euclid";
 
 const strokeWidth = ref(100);
 
@@ -13,64 +13,23 @@ const viewBox = computed(() => {
 const letterWidth = computed(() => {
   return (width.value + strokeWidth.value * 2) / 3;
 });
-const yCenterRatio = ref(0.5);
 const vCenter = computed(() => {
-  return height.value * yCenterRatio.value;
+  return height.value / 2;
 });
 
 // K
-const middleRightK = computed(() => {
-  return letterWidth.value - strokeWidth.value / 2 + 1123 - width.value;
-});
-const topK = computed(() => {
-  // anchor point 1: top left of image
+const kPoly = computed(() => {
   const a0 = new Point(0, 0);
-  // anchor point 2: middle right of K
-  const a1 = new Point(
-    // letterWidth.value - strokeWidth.value / 2,
-    middleRightK.value,
-    vCenter.value
-  );
-  const dist = new Line(a0, a1).length;
-  const internalAngle = Math.asin(strokeWidth.value / dist);
-  const a2 = a0.rotate(internalAngle, a1);
-  const edge = new Line(a1, a2);
-  const shift = edge.perpendicular(a2).unitVector;
-  const midLine = edge.shift(
-    (shift.x * strokeWidth.value) / 2,
-    (shift.y * strokeWidth.value) / 2
-  );
-  return {
-    x1: midLine.p1.x,
-    y1: midLine.p1.y,
-    x2: midLine.p2.x,
-    y2: midLine.p2.y,
-  };
-});
-const bottomK = computed(() => {
-  // anchor point 1: bottom left of image
-  const a0 = new Point(0, height.value);
-  // anchor point 2: middle right of K
-  const a1 = new Point(
-    // letterWidth.value - strokeWidth.value / 2,
-    middleRightK.value,
-    vCenter.value
-  );
-  const dist = new Line(a0, a1).length;
-  const internalAngle = Math.asin(strokeWidth.value / dist);
-  const a2 = a0.rotate(-internalAngle, a1);
-  const edge = new Line(a1, a2);
-  const shift = edge.perpendicular(a2).unitVector;
-  const midLine = edge.shift(
-    (-shift.x * strokeWidth.value) / 2,
-    (-shift.y * strokeWidth.value) / 2
-  );
-  return {
-    x1: midLine.p1.x,
-    y1: midLine.p1.y,
-    x2: midLine.p2.x,
-    y2: midLine.p2.y,
-  };
+  const a1 = new Point(0, height.value);
+  const l0 = new Line(a0, a0.shift(1, 1));
+  const l1 = new Line(a1, a1.shift(1, -1));
+  const midLeft = intersections(l0, l1)[0];
+  const frame = [a0, midLeft, a1];
+  const offset = strokeWidth.value / Math.cos(Math.PI / 4);
+  return frame
+    .concat([...frame].reverse().map((p) => p.shift(offset, 0)))
+    .map((p) => `${p.x},${p.y}`)
+    .join(" ");
 });
 
 // H
@@ -93,8 +52,7 @@ const middleEWidth = computed(() => {
 
 <template>
   <svg id="logo" :width="width" :height="height" :viewBox="viewBox">
-    <line v-bind="topK" />
-    <line v-bind="bottomK" />
+    <polygon :points="kPoly" />
     <line :x1="leftBar" y1="0" :x2="leftBar" :y2="height" />
     <line :x1="leftBar" :y1="vCenter" :x2="rightBar" :y2="vCenter" />
     <line :x1="rightBar" y1="0" :x2="rightBar" :y2="height" />
@@ -112,7 +70,18 @@ const middleEWidth = computed(() => {
       :y2="height - strokeWidth / 2"
     />
   </svg>
-  <input type="range" v-model.number="width" min="1000" max="1300" />
+  <div id="controlRow">
+    <div class="control">
+      <p>Width</p>
+      <input type="range" v-model.number="width" min="1000" max="1300" />
+      <p>{{ width }}</p>
+    </div>
+    <div class="control">
+      <p>Stroke Width</p>
+      <input type="range" v-model.number="strokeWidth" min="50" max="150" />
+      <p>{{ strokeWidth }}</p>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -121,8 +90,25 @@ const middleEWidth = computed(() => {
   background-color: black;
 }
 #logo line {
-  /* opacity: 0.6; */
   stroke: white;
   stroke-width: v-bind(strokeWidth);
+}
+#logo polygon {
+  fill: white;
+}
+#controlRow {
+  display: flex;
+  flex-direction: row;
+  place-items: center;
+  margin: 5px;
+}
+.control {
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  padding: 5px;
+}
+.control:not(:last-child) {
+  border-right: 1px solid black;
 }
 </style>
