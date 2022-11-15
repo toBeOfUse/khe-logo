@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, reactive } from "vue";
 import { Point, Line, intersections } from "@mathigon/euclid";
 
 const strokeWidth = ref(100);
@@ -48,26 +48,50 @@ const middleERatio = ref(0.9);
 const middleEWidth = computed(() => {
   return letterWidth.value * middleERatio.value;
 });
+
+const colors = reactive(
+  ["344de8", "3494e8", "34c1e8", "34e7e8", "34e89c"].map((c) => "#" + c)
+);
 </script>
 
 <template>
   <svg id="logo" :width="width" :height="height" :viewBox="viewBox">
-    <polygon :points="kPoly" />
-    <line :x1="leftBar" y1="0" :x2="leftBar" :y2="height" />
-    <line :x1="leftBar" :y1="vCenter" :x2="rightBar" :y2="vCenter" />
-    <line :x1="rightBar" y1="0" :x2="rightBar" :y2="height" />
-    <line :x1="eLeft" :y1="strokeWidth / 2" :x2="width" :y2="strokeWidth / 2" />
+    <polygon :points="kPoly" :fill="colors[0]" />
     <line
+      :x1="leftBar"
+      :y1="vCenter"
+      :x2="rightBar"
+      :y2="vCenter"
+      :stroke="colors[2]"
+    />
+    <line :x1="leftBar" y1="0" :x2="leftBar" :y2="height" :stroke="colors[1]" />
+    <line
+      :x1="eLeft"
+      :y1="strokeWidth / 2"
+      :x2="width"
+      :y2="strokeWidth / 2"
+      :stroke="colors[4]"
+    />
+    <line
+      :stroke="colors[4]"
       :x1="eLeft"
       :y1="height / 2"
       :x2="eLeft + middleEWidth"
       :y2="height / 2"
     />
     <line
+      :stroke="colors[4]"
       :x1="eLeft"
       :y1="height - strokeWidth / 2"
       :x2="width"
       :y2="height - strokeWidth / 2"
+    />
+    <line
+      :x1="rightBar"
+      y1="0"
+      :x2="rightBar"
+      :y2="height"
+      :stroke="colors[3]"
     />
   </svg>
   <div id="controlRow">
@@ -82,6 +106,11 @@ const middleEWidth = computed(() => {
       <p>{{ strokeWidth }}</p>
     </div>
   </div>
+  <div id="controlRow">
+    <div class="control" v-for="n in colors.length" :key="n">
+      <input type="color" v-model="colors[n - 1]" />
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -92,12 +121,12 @@ const middleEWidth = computed(() => {
   height: auto;
 }
 #logo line {
-  stroke: white;
+  /* stroke: white; */
   stroke-width: v-bind(strokeWidth);
 }
-#logo polygon {
+/* #logo polygon {
   fill: white;
-}
+} */
 #controlRow {
   display: flex;
   flex-direction: row;
